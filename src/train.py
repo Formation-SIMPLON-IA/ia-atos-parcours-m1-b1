@@ -4,9 +4,17 @@ Usage:
     python src/train.py --config default
     python src/train.py --config balanced
 
-Produces:
-    models/pyrenex_risk_v2.joblib  (the full Pipeline)
-    models/pyrenex_risk_v2.json    (metadata)
+Each run writes:
+    models/pyrenex_risk_v2_<config>.joblib   (full Pipeline)
+    models/pyrenex_risk_v2_<config>.json     (metadata, no holdout metric yet)
+
+Once you have chosen which configuration to retain, promote it to the
+canonical name expected by `evaluate.py` and `contract_test.py`:
+
+    cp models/pyrenex_risk_v2_<chosen>.joblib models/pyrenex_risk_v2.joblib
+    cp models/pyrenex_risk_v2_<chosen>.json   models/pyrenex_risk_v2.json
+
+Then `python src/evaluate.py --update-meta` fills in `metrics_holdout`.
 """
 from __future__ import annotations
 
@@ -24,7 +32,14 @@ from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
-from preprocess import build_preprocessor, load_dataset
+from preprocess import (
+    CATEGORICAL_FEATURES,
+    NUMERIC_FEATURES,
+    TARGET_COLUMN,
+    TARGET_MAPPING,
+    build_preprocessor,
+    load_dataset,
+)
 
 CONFIGS: dict[str, dict] = {
     "default": {
@@ -68,9 +83,8 @@ def train(config_name: str, data_path: Path, output_dir: Path) -> dict:
         "roc_auc": roc_auc_score(y_test, y_proba),
     }
 
-    # Persist model + metadata
     output_dir.mkdir(parents=True, exist_ok=True)
-    model_path = output_dir / "pyrenex_risk_v2.joblib"
+    model_path = output_dir / f"pyrenex_risk_v2_{config_name}.joblib"
     joblib.dump(pipeline, model_path, compress=3)
 
     meta = {
@@ -83,12 +97,16 @@ def train(config_name: str, data_path: Path, output_dir: Path) -> dict:
         "dataset_sha256": sha256(data_path.read_bytes()).hexdigest(),
         "hyperparameters": params,
         "metrics_test_internal": {k: round(v, 4) for k, v in metrics.items()},
+        "feature_columns": {
+            "numeric": list(NUMERIC_FEATURES),
+            "categorical": list(CATEGORICAL_FEATURES),
+        },
+        "target": {"column": TARGET_COLUMN, "mapping": TARGET_MAPPING},
     }
-    (output_dir / "pyrenex_risk_v2.json").write_text(
-        json.dumps(meta, indent=2), encoding="utf-8"
-    )
+    meta_path = output_dir / f"pyrenex_risk_v2_{config_name}.json"
+    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
-    return {"model_path": model_path, "metrics": metrics}
+    return {"model_path": model_path, "meta_path": meta_path, "metrics": metrics}
 
 
 def main() -> None:
@@ -100,7 +118,14 @@ def main() -> None:
 
     result = train(args.config, args.data, args.output)
     print(f"Model saved to {result['model_path']}")
+    print(f"Metadata saved to {result['meta_path']}")
     print(f"Metrics (test internal): {result['metrics']}")
+    print(
+        "\nNext step: once you have chosen your retained config, promote it:\n"
+        f"  cp {result['model_path']} {args.output}/pyrenex_risk_v2.joblib\n"
+        f"  cp {result['meta_path']} {args.output}/pyrenex_risk_v2.json\n"
+        "  python src/evaluate.py --update-meta"
+    )
 
 
 if __name__ == "__main__":

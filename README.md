@@ -52,6 +52,7 @@ M1-B1-scoring-<prenom>/
 │   ├── 05_Persistance_modele_joblib_essentiel.md
 │   ├── liens_officiels.md
 │   └── README.md                        # ordre de mobilisation + objectifs
+├── contract_test.py                     # à compléter — valide shapes/classes/probas du .joblib
 ├── experiments.md                       # à compléter run par run
 ├── verdict.md                           # à rédiger en fin de journée
 ├── requirements.txt
@@ -91,15 +92,24 @@ la formatrice mardi 9h. Place les 2 fichiers dans `data/` :
 
 ## 🧭 Démarche attendue
 
-1. **Comprends la baseline** : clone `pyrenex-risk-v1` (lien fourni par la
-   formatrice), lis le code et les métriques rapportées.
+1. **Comprends la baseline** : clone le repo public
+   [`Formation-SIMPLON-IA/pyrenex-risk-v1`](https://github.com/Formation-SIMPLON-IA/pyrenex-risk-v1),
+   lis le code et les métriques rapportées.
 2. **EDA** dans le notebook (cellules markdown structurées).
-3. **Split stratifié** avec `random_state=42`.
+3. **Split stratifié** avec `random_state=42`. Le `holdout` reste intact
+   jusqu'à l'étape 6 (cf. règle d'or *comparabilité*).
 4. **Entraînement** d'au moins 2 jeux d'hyperparamètres dans `src/train.py`.
-5. **Évaluation** sur le holdout avec `src/evaluate.py`.
-6. **Trace tes runs** dans `experiments.md` (template fourni).
-7. **Persistance** : `models/pyrenex_risk_v2.joblib` + `pyrenex_risk_v2.json`.
-8. **Verdict** dans `verdict.md` (1 page max).
+   Trace chaque run dans `experiments.md` avec score `test` interne (pas
+   le holdout).
+5. **Évaluation finale sur le holdout** avec `src/evaluate.py` —
+   **une seule fois**.
+6. **Persistance** du Pipeline complet : `models/pyrenex_risk_v2.joblib`
+   + `pyrenex_risk_v2.json` avec les **5 clés obligatoires**
+   (`model_version`, `created_at`, `sklearn_version`, `dataset_sha256`,
+   `metrics_holdout`).
+7. **Contract test** : complète `contract_test.py` et lance-le dans un
+   script séparé — tous les `assert` doivent passer.
+8. **Verdict** dans `verdict.md` (1 page max) + tag git `v2.0.0`.
 
 Mini-cours d'appui : voir [`./ressources/`](./ressources/).
 

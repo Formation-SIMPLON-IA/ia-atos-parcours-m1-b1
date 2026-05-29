@@ -45,6 +45,12 @@ def load_dataset(path: Path) -> tuple[pd.DataFrame, pd.Series]:
 
 def build_preprocessor() -> ColumnTransformer:
     """Build the ColumnTransformer applying numeric + categorical pipelines."""
+    if not NUMERIC_FEATURES or not CATEGORICAL_FEATURES:
+        raise ValueError(
+            "NUMERIC_FEATURES and CATEGORICAL_FEATURES are empty in "
+            "src/preprocess.py. Fill them from your EDA before training. "
+            "See ressources/01_Pandas_Sklearn_split_essentiel.md."
+        )
     numeric_pipeline = Pipeline(
         steps=[
             ("imputer", SimpleImputer(strategy="median")),

@@ -37,11 +37,12 @@ et cloné ton repo perso `M1-B1-scoring-<prénom>`. Pour l'installation et le
 démarrage en 4 commandes, cf. le [`README.md`](../README.md) à la racine du
 repo.
 
-> ⚠️ Le **repo baseline `pyrenex-risk-v1`** est un repo **séparé** (la
-> formatrice te donne le lien mardi 9h). Le repo perso que tu travailles
-> est **ton** repo, où tu produiras le nouveau modèle `pyrenex_risk_v2`.
-> Tous tes commits vont chez **toi**, pas chez Simplon — c'est ton historique
-> que tu pourras montrer en évaluation.
+> ⚠️ Le **repo baseline** est public et **séparé** :
+> [`Formation-SIMPLON-IA/pyrenex-risk-v1`](https://github.com/Formation-SIMPLON-IA/pyrenex-risk-v1).
+> Tu le clones en lecture seule (`git clone https://github.com/Formation-SIMPLON-IA/pyrenex-risk-v1.git`).
+> Le repo perso que tu travailles est **ton** repo, où tu produiras le
+> nouveau modèle `pyrenex_risk_v2`. Tous tes commits vont chez **toi**,
+> pas chez Simplon — c'est ton historique que tu pourras montrer en évaluation.
 
 ---
 

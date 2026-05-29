@@ -59,10 +59,11 @@ Dernière vérification : 2026-05-25
 
 - **scikit-learn — examples** : <https://github.com/scikit-learn/scikit-learn/tree/main/examples>
   - État : ✅ vérifié le 2026-05-18
-- **Repo cours ATOS — squelette M1-B1** : <https://github.com/Formation-SIMPLON-IA/ia-atos-parcours/tree/main/briefs/M1-B1/squelette>
-  - État : ✅ vérifié le 2026-05-18
+- **Repo template M1-B1** (privé Formation-SIMPLON-IA) : <https://github.com/Formation-SIMPLON-IA/ia-atos-parcours-m1-b1>
+  - Accès via *« Use this template »* — crée ton repo perso `M1-B1-scoring-<prénom>`
+  - État : ✅ accessible aux membres de l'organisation (privé)
 
-## Livres (référencés dans CLAUDE.md, non-publics)
+## Livres (bibliothèque interne formatrice, non-publics)
 
 - **Aurélien Géron — *Machine Learning avec scikit-Learn* (3ᵉ éd.)** :
   ch. 2 *End-to-end ML project*, ch. 3 *Classification*, ch. 7 *Ensembles*.
