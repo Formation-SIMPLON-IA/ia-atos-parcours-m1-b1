@@ -218,6 +218,51 @@ def contract_test_model(
 prêt pour M1-B2, **et** une fonction de test contractuel qui détecte la
 moindre dérive entre notebook et fichier persisté.
 
+### Le double geste : `metrics_test_internal` ≠ `metrics_holdout`
+
+> 🔑 Le json se construit **en deux temps** — pas en un. La règle d'or
+> *« le holdout n'apparaît PAS dans les runs intermédiaires »* (cf.
+> mini-cours 04) impose cette séparation.
+
+Tu vas écrire **deux clés de métriques** dans le `.json`, mais elles
+n'arrivent **pas en même temps** :
+
+| Clé | Quand l'écrire ? | Source | Outil |
+|---|---|---|---|
+| `metrics_test_internal` | À chaque entraînement (run de comparaison) | Split interne train/test du jeu d'entraînement (cross-validation ou hold-out 80/20 du `lending_club_train.csv`) | `python src/train.py` |
+| `metrics_holdout` | **Une seule fois**, à la toute fin, sur le verdict | Le `lending_club_holdout.csv` scellé, **jamais vu pendant la sélection** | `python src/evaluate.py --update-meta` |
+
+**Pourquoi cette gymnastique ?** Si tu écris `metrics_holdout` à chaque
+itération, tu fais du *cherry-picking sur le holdout* — la métrique
+publiée n'est plus une estimation honnête du modèle en production.
+C'est exactement ce que Pyrenex devra défendre devant son contrôleur
+interne en M9. Le holdout doit rester **scellé** jusqu'à la décision
+finale.
+
+**Workflow concret** (squelette M1-B1 fourni) :
+
+```bash
+# 1. À chaque run de comparaison (étapes 3-4 du brief — tâches "tronquer / tuner")
+python src/train.py --config balanced   # produit .joblib + .json avec metrics_test_internal
+python src/train.py --config tuned      # idem, écrit metrics_test_internal
+
+# 2. UNE fois — quand tu as choisi le modèle final, étape 5 du brief
+python src/evaluate.py \
+    --model models/pyrenex_risk_v2.joblib \
+    --data data/lending_club_holdout.csv \
+    --update-meta                       # PATCH le .json en ajoutant metrics_holdout
+```
+
+`--update-meta` **ajoute** la clé `metrics_holdout` sans toucher au reste
+du json (les autres clés survivent intactes). C'est ce json enrichi qui
+sera servi par `/info` en M1-B2.
+
+> ⚠️ **À ne pas oublier** : sans `--update-meta`, ton json final n'aura
+> pas `metrics_holdout` et **M1-B2 cassera** au runtime (`KeyError` dans
+> `/info`). Si tu vois ce symptôme en M1-B2, retourne lancer
+> `evaluate.py --update-meta` sur ton repo M1-B1 et re-pousse le json
+> mis à jour.
+
 ### Format de livraison final attendu
 
 Voilà la structure standard qu'on remet au client (et qui sera consommée
@@ -226,13 +271,15 @@ telle quelle par l'API M1-B2) :
 ```text
 models/
 ├── pyrenex_risk_v2.joblib        # modèle persisté (Pipeline complet, compress=3)
-├── pyrenex_risk_v2.json          # métadonnées (5 clés obligatoires + recommandées)
+├── pyrenex_risk_v2.json          # métadonnées (5 clés obligatoires + recommandées,
+│                                 # dont metrics_holdout patché par evaluate.py)
 └── README.md                     # facultatif : comment recharger en 3 lignes
 ```
 
 Le `requirements.txt` du repo fige les versions de libs — il vit à la
 racine du repo, pas dans `models/`. Tag git `v2.0.0` sur le commit qui
-publie ce dossier. Voilà ce qui rentre dans la pipeline M5.
+publie ce dossier **après** le `--update-meta` (sinon tu tagges un json
+incomplet). Voilà ce qui rentre dans la pipeline M5.
 
 ## Exercice guidé
 
@@ -248,10 +295,20 @@ publie ce dossier. Voilà ce qui rentre dans la pipeline M5.
    que ton `.joblib` est **livrable**, pas juste rechargeable.
 3. **Ouvre le `.json`** et vérifie que toutes les clés sont remplies. Aucune
    valeur ne doit être `null` (sauf si justifié).
-4. **Commit dans Git** les 2 fichiers, avec un message
-   `feat(model): persist pyrenex_risk_v2 with metadata`.
-5. **Tag git** : `git tag -a v2.0.0 -m "Pyrenex risk model v2"` —
-   préparation directe pour M1-B2.
+4. **Patche `metrics_holdout`** une fois ton verdict final décidé :
+   ```bash
+   python src/evaluate.py \
+       --model models/pyrenex_risk_v2.joblib \
+       --data data/lending_club_holdout.csv \
+       --update-meta
+   ```
+   Ré-ouvre le `.json` : les **5 clés obligatoires** sont toutes là, dont
+   `metrics_holdout` non vide. Si une clé manque, ton M1-B2 cassera.
+5. **Commit dans Git** les 2 fichiers (`.joblib` + `.json` post-patch),
+   avec un message `feat(model): persist pyrenex_risk_v2 with metadata`.
+6. **Tag git** : `git tag -a v2.0.0 -m "Pyrenex risk model v2"` —
+   préparation directe pour M1-B2. **Ne tagge qu'après** `--update-meta`
+   (sinon tu figes un json incomplet).
 
 **Solution attendue (point 2)** : si l'assert sur `expected_first_proba`
 échoue, le coupable habituel est qu'on a persisté **le classifieur seul** au
@@ -270,6 +327,8 @@ différente entre dump et load, ou jeu de features réordonné silencieusement.
 | Charger un `.joblib` venant d'une source inconnue | **Risque sécurité** : pickle peut exécuter du code arbitraire. Toujours valider la source. |
 | Commiter un `.joblib` > 100 Mo dans Git | Git refuse / clone lent — utiliser Git LFS, ou stocker hors Git (S3 en M5) |
 | Métadonnées dans le notebook seulement | Information perdue dès qu'on quitte le notebook |
+| Oublier de lancer `evaluate.py --update-meta` après le verdict | `metrics_holdout` absent du json → `KeyError` au démarrage de l'API M1-B2 |
+| Écrire `metrics_holdout` dès `train.py` (avant le verdict final) | Cherry-picking sur le holdout : la métrique annoncée au client est biaisée — règle d'or *comparabilité* violée |
 
 ### Symptôme → cause probable
 
@@ -280,6 +339,7 @@ différente entre dump et load, ou jeu de features réordonné silencieusement.
 | `UserWarning: Trying to unpickle estimator from version X.Y when using version A.B` | Versions différentes — souvent OK si mineur identique, à vérifier en M5 |
 | `.joblib` > 100 Mo | Probablement `compress=0` ou `n_estimators` énorme |
 | `FileNotFoundError` en chargeant le `.joblib` dans le container Docker (M1-B2) | Path relatif vs absolu — utiliser `Path(__file__).parent / "model.joblib"` |
+| `KeyError: 'metrics_holdout'` au démarrage de l'API M1-B2 | `evaluate.py --update-meta` n'a pas été lancé en M1-B1 — relance-le, re-commit le json, re-pull en M1-B2 |
 
 ## Pour aller plus loin
 
@@ -291,8 +351,10 @@ différente entre dump et load, ou jeu de features réordonné silencieusement.
 ## Vérification (checklist apprenant)
 
 - [ ] J'ai persisté **le Pipeline complet** (pas juste le classifieur)
-- [ ] Mon `.json` métadonnées contient les **5 clés obligatoires** : `model_version`, `created_at`, `sklearn_version`, `dataset_sha256`, `metrics_holdout`
+- [ ] `train.py` a produit le `.json` avec `metrics_test_internal`
+- [ ] J'ai lancé `python src/evaluate.py --update-meta` **après** mon verdict final
+- [ ] Mon `.json` métadonnées contient les **5 clés obligatoires** : `model_version`, `created_at`, `sklearn_version`, `dataset_sha256`, `metrics_holdout` (toutes non-nulles)
 - [ ] Mon **contract test** (`contract_test.py`) passe tous les asserts dans un script séparé
 - [ ] Mon `.joblib` fait **moins de 10 Mo** (sinon `compress=3` à vérifier)
 - [ ] Mon `requirements.txt` est figé et co-localisé avec le repo
-- [ ] J'ai commité + taggé `v2.0.0` dans Git — prêt à être tiré en M1-B2
+- [ ] J'ai commité + taggé `v2.0.0` dans Git **après** `--update-meta` — prêt à être tiré en M1-B2
