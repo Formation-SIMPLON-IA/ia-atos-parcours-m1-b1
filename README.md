@@ -119,7 +119,7 @@ Mini-cours d'appui : voir [`./ressources/`](./ressources/).
 
 - Python 3.11+
 - Type hints sur toutes les signatures publiques
-- Pas de `print` (utiliser `logging` ou Loguru)
+- Pas de `print` — utiliser **Loguru**
 - `random_state=42` partout où il y a de l'aléa
 - `pathlib.Path` pour les chemins (pas de `os.path`)
 
