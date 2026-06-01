@@ -64,6 +64,29 @@ défauts** (rater un mauvais payeur = perte sèche).
     immédiatement le degré de déséquilibre (ex. `support=400` pour la classe
     *défaut* contre `support=1600` pour *remboursé* → ratio 1:4).
 
+### Comment lire un classification_report ligne par ligne
+
+Sortie typique sur Pyrenex Crédit (chiffres illustratifs) :
+
+```text
+              precision    recall  f1-score   support
+
+   Remboursé       0.85      0.92      0.88      1600   ← classe majoritaire
+      Défaut       0.62      0.45      0.52       400   ← classe minoritaire (celle qui compte)
+
+    accuracy                           0.82      2000   ← piège : 82% mais on rate >50% des défauts
+   macro avg       0.74      0.69      0.70      2000   ← moyenne NON pondérée → représentative
+weighted avg       0.80      0.82      0.81      2000   ← moyenne pondérée par support → écrasée par la majorité
+```
+
+**Règles de lecture** :
+
+1. **Lis d'abord la ligne de la classe minoritaire** (ici *Défaut*) — c'est elle qui décide si le modèle est exploitable.
+2. **Compare precision et recall sur cette ligne** : precision 0.62 = quand le modèle dit « défaut », il a raison 62% du temps ; recall 0.45 = il ne détecte que 45% des vrais défauts.
+3. **Ignore `accuracy`** en classification déséquilibrée — c'est le piège.
+4. **`macro avg` > `weighted avg` en pertinence métier** : macro donne autant de poids à chaque classe, weighted écrase la minorité.
+5. **`support`** te dit le degré de déséquilibre — si ratio > 1:5, ROC-AUC peut mentir, regarde aussi PR-AUC.
+
 ### Le piège du seuil par défaut (0.5)
 
 `model.predict()` applique implicitement un seuil de 0.5 sur la probabilité.
