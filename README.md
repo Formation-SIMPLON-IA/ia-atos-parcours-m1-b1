@@ -20,6 +20,10 @@ python -m venv .venv && source .venv/bin/activate     # Linux/macOS
 
 # 2. Dépendances
 pip install -r requirements.txt
+#    ▸ Option uv (si tu as suivi le setup avec uv) — un `uv venv` n'embarque
+#      PAS pip, il faut donc `uv pip` :
+# uv venv --python 3.11 && source .venv/bin/activate
+# uv pip install -r requirements.txt
 
 # 3. Vérification
 python src/train.py --help     # → doit afficher l'usage du script
