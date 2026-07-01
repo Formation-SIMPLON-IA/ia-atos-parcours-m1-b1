@@ -343,7 +343,7 @@ différente entre dump et load, ou jeu de features réordonné silencieusement.
 
 ## Pour aller plus loin
 
-- Doc officielle : [joblib — persistence](https://joblib.readthedocs.io/en/latest/persistence.html)
+- Doc officielle : [joblib — persistence](https://joblib.readthedocs.io/en/stable/persistence.html)
 - Doc officielle : [scikit-learn — model persistence](https://scikit-learn.org/stable/model_persistence.html)
 - Article : [Pickling pitfalls](https://docs.python.org/3/library/pickle.html#restricting-globals) — sécurité.
 - À venir en M5 : *Model Registry MLflow*, **DVC** pour les modèles, signatures cryptographiques.

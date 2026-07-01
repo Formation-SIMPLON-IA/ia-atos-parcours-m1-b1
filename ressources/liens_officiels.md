@@ -1,6 +1,6 @@
 # Liens officiels — M1-B1
 
-Dernière vérification : 2026-05-25
+Dernière vérification : 2026-06-10
 
 ## Documentation officielle
 
@@ -16,7 +16,7 @@ Dernière vérification : 2026-05-25
 - **scikit-learn — Model persistence** : <https://scikit-learn.org/stable/model_persistence.html>
   - Sections recommandées : *Persistence and versioning*, *Security and maintainability*
   - État : ✅ vérifié le 2026-05-18
-- **joblib — Persistence** : <https://joblib.readthedocs.io/en/latest/persistence.html>
+- **joblib — Persistence** : <https://joblib.readthedocs.io/en/stable/persistence.html>
   - État : ✅ vérifié le 2026-05-18
 - **MLflow — Tracking (bonus)** : <https://mlflow.org/docs/latest/tracking.html>
   - Sections recommandées : *Concepts*, *Quickstart*, *Tracking API*

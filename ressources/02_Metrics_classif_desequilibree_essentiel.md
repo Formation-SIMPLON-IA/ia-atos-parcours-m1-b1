@@ -184,7 +184,7 @@ de la minorité comme le ferait l'accuracy ou le F1 *weighted*.
 ## Pour aller plus loin
 
 - Doc officielle : [scikit-learn — Classification report](https://scikit-learn.org/stable/modules/model_evaluation.html#classification-report)
-- Article : [Why accuracy is not enough — towards data science](https://towardsdatascience.com/the-5-classification-evaluation-metrics-every-data-scientist-must-know-aa97784ff226)
+- Guide : [Google ML Crash Course — Classification](https://developers.google.com/machine-learning/crash-course/classification)
 - Référence : [Davis & Goadrich, 2006 — PR vs ROC](https://www.cs.ru.nl/~tomh/onderwijs/dm/dm_files/roc_auc.pdf)
 - Aurélien Géron, *ML avec scikit-Learn* ch. 3 — *Classification*.
 
